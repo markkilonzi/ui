@@ -37,6 +37,18 @@ import { Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
 Livewire.start();
 ```
 
+## A project that is not a Nyumbani app
+Import `base.css` instead of `theme.css`: it has the styles with the Nyumbani colours, font, size and corners as the defaults, and no web font. Redefine only the tokens that should change, such as the six colours (`--color-primary`, `-dark`, `-darker`, `--color-secondary`, `-dark`, `-light`), `--font-sans` and `--font-size-base` (and `--radius-field`, `--radius-panel` or `--radius-sheet` to change the corners) after it, in the project's own `@theme` and `:root`. A token left undefined stays Nyumbani. `theme.css` is the Nyumbani web fonts plus `base.css`, so a Nyumbani app changes nothing.
+```css
+/* resources/css/app.css */
+@import '../../vendor/nyumbani/ui/resources/css/base.css';
+
+@theme {
+    --color-primary: #0d9488;
+}
+```
+Also set `error_pages` to `false` in `config/ui.php` (the error pages extend the Nyumbani layout), set `loader_message` there to the project's own wording, set `loader` there to the project's own loader image (a path under `public/` or a URL; the shipped one has the Nyumbani colours drawn in), implement `Nyumbani\Essentials\Contracts\HasHomeRoute` on the user model (outside production, signing in throws a LogicException without it, and `homeRoute()` returns a URL such as `url('/')`), and bind the project's own `Nyumbani\Essentials\Contracts\AuthViews` in `AppServiceProvider::register()` to replace the Nyumbani sign-in pages. In that project these rules of the `views` rule file do not apply: pages extend the shared layout, the auth pages come from the package, the palette is the package's, and the shell script runs the sidebar. Every other rule still does. `ui:install` keeps a `base.css` import and adds no `theme.css` beside it.
+
 ## The portal needs a route
 The installer edits no routes. Add this inside the `auth` group, with any route name, and return its URL from `homeRoute()` on the user model:
 ```php
@@ -51,7 +63,7 @@ Route::middleware('auth')->group(function () {
 `ui:install` ends with: theme imported, sources scanned, Vite aliases, UI scripts imported, formatting helpers imported, Livewire started, and the optional portal. Each failed item names the fix.
 
 ## Configuration
-Publish with `php artisan vendor:publish --tag=ui-config`: `branding.description` (`UI_DESCRIPTION`), `branding.theme_color` (`UI_THEME_COLOR`, default `#d97706`) and `error_pages`. After changing a script in the package, run `npm run build` in `packages/ui` and commit `resources/dist`.
+Publish with `php artisan vendor:publish --tag=ui-config`: `branding.description` (`UI_DESCRIPTION`), `branding.theme_color` (`UI_THEME_COLOR`, default `#d97706`), `loader` (`UI_LOADER`), `loader_message` (`UI_LOADER_MESSAGE`) and `error_pages`. After changing a script in the package, run `npm run build` in `packages/ui` and commit `resources/dist`.
 
 ## When it looks wrong
 | You see | Because | Do |
@@ -59,6 +71,7 @@ Publish with `php artisan vendor:publish --tag=ui-config`: `branding.description
 | Unstyled pages | The theme import is missing, or `npm run build` has not run. | `ui:install`, then build. |
 | Unstyled toasts, a shell that does not open | The scripts are not imported. | Add the two imports before Livewire starts. |
 | Modals and tabs do nothing | Livewire was not started in `app.js`. | Add `Livewire.start()`. |
+| A LogicException saying the user model must implement `HasHomeRoute` after signing in | Essentials sends users home through that contract. | Implement it on the user model. |
 | `/login` answers 404 | `nyumbani/ui` is not installed, so Fortify has no views. | Require it, or bind your own `AuthViews` (see nyumbani-auth). |
 | `View [admins.pages.dashboard] not found` | The portal was not published. | `php artisan ui:install --portal`. |
 | A LogicException about the sidebar | The layout extends the portal layout without a `sidebar` section, or names a view that does not exist. | Fill the section: `@section('sidebar', 'partials.sidebar')`. |

@@ -41,6 +41,97 @@
         <p>Publish a starter portal (a dashboard, a layout and a sidebar) with <code>php artisan vendor:publish --tag=ui-portal</code>.</p>
     </x-docs::section>
 
+    <x-docs::section id="other-projects" title="Using the UI in a project that is not a Nyumbani app">
+        <p>The components, scripts and styles do not need the Nyumbani layouts, so another project of yours can take them and write its own layouts. Install the package and the scripts as above, then change these three things.</p>
+
+        <h3>1. Import the base theme, then set your own colours</h3>
+        <p>Import <code>base.css</code> in place of <code>theme.css</code>. It carries the Tailwind import, the forms plugin and the form, button, table, toast and calendar styles, with the Nyumbani colours, font, base size and corners as the defaults, and no Google Fonts request. Redefine only what you want to change, after it, in your own <code>@@theme</code> and <code>:root</code>. Every button, modal, toast, calendar and loader follows.</p>
+        <x-docs::code lang="css" title="resources/css/app.css">
+            @import '../../vendor/nyumbani/ui/resources/css/base.css';
+
+            @theme {
+                --font-sans: 'Lato', ui-sans-serif, sans-serif;
+
+                --color-primary-darker: #115e59;
+                --color-primary-dark: #0f766e;
+                --color-primary: #0d9488;
+
+                --color-secondary-dark: #0f172a;
+                --color-secondary: #1e293b;
+                --color-secondary-light: #475569;
+            }
+
+            :root {
+                --font-size-base: 16px;
+            }
+        </x-docs::code>
+        <x-docs::table :columns="['Token', 'Used for']" :rows="[
+            ['--color-primary, -dark, -darker', 'Buttons (darker, hover dark), focus rings, links, the selected day in the calendars, and toasts.'],
+            ['--color-secondary, -dark, -light', 'Table headers, modal headers, the loader\'s message, and the sidebar and auth panels of the Nyumbani layouts.'],
+            ['--font-sans', 'The page font. Load it yourself.'],
+            ['--font-size-base', 'The base font size of the page, set on :root. Defaults to 15px.'],
+            ['--radius-field (optional)', 'The corner radius of form fields, buttons and the period picker\'s calendar icon. Defaults to 0.25rem.'],
+            ['--radius-panel (optional)', 'The corner radius of the modal on a large screen, the calendar popover, the period presets, the file preview, the modal\'s close button and the toasts. Defaults to 0.25rem.'],
+            ['--radius-sheet (optional)', 'The top corners of the modal as a bottom sheet on a phone. Defaults to 0.75rem.'],
+        ]" />
+        <p>Any token you leave out keeps its Nyumbani default (the orange, the slate, Inter and Roboto, 15px), so a page is never unstyled, and the page looks like a Nyumbani app until you change a token. The font names Inter and Roboto but <code>base.css</code> does not load them: load your own, or import <code>theme.css</code>, which is the Nyumbani web fonts plus <code>base.css</code>.</p>
+
+        <h3>2. Switch the Nyumbani error pages off</h3>
+        <p>The package error pages extend the Nyumbani app layout. Write your own, or leave Laravel's, by switching them off in <code>config/ui.php</code> (<code>php artisan vendor:publish --tag=ui-config</code>).</p>
+        <x-docs::code title="config/ui.php">
+            'error_pages' => false,
+        </x-docs::code>
+
+        <h3>3. Point the loader at your own image</h3>
+        <p>The loader component shows the animated Nyumbani loader, which has the Nyumbani colours drawn into it. Set <code>loader</code> in <code>config/ui.php</code> to a path under <code>public/</code> or a full URL to show yours instead. Set <code>loader_message</code> too, because the default text reads "Nyumbani is processing your data...".</p>
+        <x-docs::code title="config/ui.php">
+            'loader' => 'img/loader.svg',
+            'loader_message' => 'Loading...',
+        </x-docs::code>
+
+        <h3>4. Give Fortify your own sign-in pages</h3>
+        <p>The UI binds the Nyumbani sign-in, forgot-password and reset-password pages to Essentials' <code>AuthViews</code> contract. Bind your own implementation in your <code>AppServiceProvider</code>. App providers register after package providers, so your binding replaces the UI's before Essentials reads it.</p>
+        <x-docs::code title="app/Views/AppAuthViews.php">
+            namespace App\Views;
+
+            use Illuminate\Contracts\View\View;
+            use Illuminate\Http\Request;
+            use Nyumbani\Essentials\Contracts\AuthViews;
+
+            class AppAuthViews implements AuthViews
+            {
+                public function loginView(): View
+                {
+                    return view('auth.login');
+                }
+
+                public function forgotPasswordView(): View
+                {
+                    return view('auth.forgot-password');
+                }
+
+                public function resetPasswordView(Request $request): View
+                {
+                    return view('auth.reset-password', ['request' => $request]);
+                }
+            }
+        </x-docs::code>
+        <x-docs::code title="app/Providers/AppServiceProvider.php">
+            use App\Views\AppAuthViews;
+            use Nyumbani\Essentials\Contracts\AuthViews;
+
+            //  In register()
+            $this->app->singleton(AuthViews::class, AppAuthViews::class);
+        </x-docs::code>
+        <p>Your forms post to the Fortify routes <code>login.store</code>, <code>password.email</code>, <code>password.update</code> and <code>logout</code>.</p>
+        <p>The installer copies the Nyumbani rules into <code>.ai/rules</code>. In a project like this, four rules of <code>nyumbani-views.md</code> do not apply: pages extending the shared <code>nyumbani::</code> layouts, the sign-in pages coming from the package, the Nyumbani palette, and the sidebar and drawer being run by the shell script. Every other rule, such as the house style, <code>route()</code>, placeholders and <code>@@required</code>, still does. The rule file says so in each of those four places.</p>
+        <p>Essentials sends a user home after signing in through the <code>HasHomeRoute</code> contract, so your user model must implement it and return a URL from <code>homeRoute()</code>. Outside production, signing in throws a <code>LogicException</code> until it does.</p>
+
+        <x-docs::callout title="What still carries the Nyumbani name">
+            The components keep the <code>nyumbani::</code> prefix, and the loader's default message follows <code>loader_message</code>. The package also serves its images, favicons and web manifest under <code>/nyumbani/...</code>; they only appear on a page that links them, which your own layouts do not.
+        </x-docs::callout>
+    </x-docs::section>
+
     <x-docs::section id="checklist" title="The checklist">
         <p><code>ui:install</code> ends with a checklist of what it found. A done item stays quiet, a <strong>✗</strong> item is needed for the UI to work, and the <strong>○</strong> portal item is optional. Under each open item is its fix.</p>
         <x-docs::code lang="text" title="UI checklist">

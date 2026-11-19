@@ -110,8 +110,16 @@
             @endverbatim
         </x-docs::code>
         <x-docs::table :columns="['Prop', 'Default', 'Use']" :rows="[
-            ['message', 'Nyumbani is processing your data...', 'The pulsing text. Pass an empty string to hide it, because null falls back to the default.'],
+            ['message', 'loader_message in config/ui.php, else Nyumbani is processing your data...', 'The pulsing text. Pass an empty string to hide it, because null falls back to the default.'],
             ['size', 'lg', 'sm, md or lg.'],
         ]" />
+        <p>The image is the animated Nyumbani loader the package ships. An app that wants its own sets <code>loader</code> in <code>config/ui.php</code> (or <code>UI_LOADER</code> in <code>.env</code>) to a path under <code>public/</code> or a full URL, and every <code>&lt;x-nyumbani::loader&gt;</code> uses it. Leave it empty to keep the package one.</p>
+        <x-docs::code title="config/ui.php">
+            'loader' => env('UI_LOADER', 'img/loader.svg'),
+        </x-docs::code>
+        <p>The default text has the same switch: set <code>loader_message</code> (or <code>UI_LOADER_MESSAGE</code>) and every loader that passes no <code>message</code> shows it. A <code>message</code> prop still wins, and an empty one hides the text.</p>
+        <x-docs::code title="config/ui.php">
+            'loader_message' => env('UI_LOADER_MESSAGE', 'Loading...'),
+        </x-docs::code>
     </x-docs::section>
 @endsection

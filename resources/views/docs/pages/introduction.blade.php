@@ -17,6 +17,10 @@
         ]" />
     </x-docs::section>
 
+    <x-docs::section id="other-projects" title="Beyond Nyumbani apps">
+        <p>The package can also serve your own projects: import <code>base.css</code> for the generic styles, define your own colours, turn the error pages off and write your own layouts. See <x-docs::package-link package="nyumbani-ui" page="installation" anchor="other-projects">Using the UI in a project that is not a Nyumbani app</x-docs::package-link>.</p>
+    </x-docs::section>
+
     <x-docs::section id="namespace" title="One namespace">
         <p>Views and components share the <code>nyumbani</code> namespace: <code>nyumbani::layouts.portal</code>, <code>nyumbani::auth.login</code> and <code>&lt;x-nyumbani::modal&gt;</code>.</p>
     </x-docs::section>
@@ -26,6 +30,8 @@
         <x-docs::table :columns="['Key', 'Default', 'Effect']" :rows="[
             ['branding.description', 'null', 'The sentence under the app name on the sign-in page. Set with UI_DESCRIPTION.'],
             ['branding.theme_color', '#d97706', 'The browser address bar and installed app colour. Set with UI_THEME_COLOR.'],
+            ['loader', 'null', 'The image the loader shows, a path under public/ or a full URL. Empty uses the Nyumbani loader. Set with UI_LOADER.'],
+            ['loader_message', 'null', 'The text under the loader when a page passes no message. Empty uses "Nyumbani is processing your data...". Set with UI_LOADER_MESSAGE.'],
             ['error_pages', 'true', 'The package error pages replace the framework ones. Set to false to leave them alone.'],
         ]" />
     </x-docs::section>

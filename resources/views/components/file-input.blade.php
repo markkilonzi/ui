@@ -12,7 +12,7 @@
 
     <div class="flex items-center gap-4">
         <a x-show="showImage" x-cloak :href="imageSrc" data-fancybox data-type="image" :data-caption="displayName" title="Preview" class="shrink-0">
-            <img :src="imageSrc" class="h-16 w-16 rounded object-cover border border-gray-200" alt="">
+            <img :src="imageSrc" class="h-16 w-16 rounded-panel object-cover border border-gray-200" alt="">
         </a>
 
         <div x-show="!showImage" class="h-16 w-16 flex items-center justify-center rounded border border-gray-200 bg-gray-50 text-gray-400">

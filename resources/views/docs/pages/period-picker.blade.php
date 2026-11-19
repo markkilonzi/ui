@@ -129,7 +129,7 @@
     </x-docs::section>
 
     <x-docs::section id="theme" title="Theme">
-        <p>The calendars take the Nyumbani colours from the theme: the primary colour for the selected date or month, today, weekends and hover tints. Change them in one place, the <code>--vc-*</code> variables on <code>.vc[data-vc=calendar]</code> in <code>theme.css</code>.</p>
+        <p>The calendars take the Nyumbani colours from the theme: the primary colour for the selected date or month, today, weekends and hover tints. Change them in one place, the <code>--vc-*</code> variables on <code>.vc[data-vc=calendar]</code> in <code>base.css</code>.</p>
     </x-docs::section>
 
     <x-docs::section id="presets" title="Presets">

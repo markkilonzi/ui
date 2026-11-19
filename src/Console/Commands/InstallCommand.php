@@ -246,8 +246,8 @@ class InstallCommand extends Command
         //  Read the stylesheet
         $contents = File::get($css);
 
-        //  Find the theme import the app already has, whatever its path
-        $hasTheme = preg_match('/^@import\s+([\'"])[^\'"]*nyumbani\/ui\/resources\/css\/theme\.css\1;\R?/m', $contents, $theme) === 1;
+        //  Find the theme import the app already has, whatever its path: the full theme, or the generic base an app that is not a Nyumbani app imports and colours itself
+        $hasTheme = preg_match('/^@import\s+([\'"])[^\'"]*nyumbani\/ui\/resources\/css\/(?:theme|base)\.css\1;\R?/m', $contents, $theme) === 1;
 
         //  Find the Tailwind import and the forms plugin
         $tailwind = '/^@import\s+([\'"])tailwindcss\1;\R?/m';

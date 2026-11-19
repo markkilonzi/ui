@@ -69,7 +69,7 @@ class UiChecklist
     public function items(): array
     {
         return [
-            $this->item('Theme imported in resources/css/app.css', $this->fileHas(resource_path('css/app.css'), 'nyumbani/ui/resources/css/theme.css'), "Add @import '../../vendor/nyumbani/ui/resources/css/theme.css'; after the Tailwind import."),
+            $this->item('Theme imported in resources/css/app.css', $this->fileHas(resource_path('css/app.css'), 'nyumbani/ui/resources/css/theme.css') || $this->fileHas(resource_path('css/app.css'), 'nyumbani/ui/resources/css/base.css'), "Add @import '../../vendor/nyumbani/ui/resources/css/theme.css'; (or base.css, for an app with its own colours) in place of the Tailwind import."),
             $this->item('Enums, data tables and their config scanned in resources/css/app.css', collect(self::sourcesFor(self::usesDataTables()))->every(fn (string $alias, string $relative) => $this->fileHas(resource_path('css/app.css'), "@source '{$relative}'") || $this->fileHas(resource_path('css/app.css'), "@source '{$alias}'")), 'Add @source lines for app/Enums, app/DataTables and config/dt-tables.php to resources/css/app.css.'),
             $this->item('Vite aliases in vite.config.js', collect(array_keys(self::APP_ALIASES))->every(fn (string $alias) => $this->fileHas(base_path('vite.config.js'), "'{$alias}'")), 'Add the '.implode(', ', array_keys(self::APP_ALIASES)).' aliases to resolve.alias in vite.config.js.'),
             $this->item('UI scripts imported in resources/js/app.js', $this->fileHas(resource_path('js/app.js'), 'nyumbani/ui/resources/dist/ui.js'), "Add import '../../vendor/nyumbani/ui/resources/dist/ui.js'; before Livewire starts."),

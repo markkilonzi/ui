@@ -23,7 +23,13 @@ Every toast type (success, error, info, warning) renders in the one success colo
 <x-nyumbani::loader size="md" message="Nyumbani is loading this for you..." />
 <x-nyumbani::loader message="" />
 ```
-Props: `message` (default "Nyumbani is processing your data...") and `size` (`sm`, `md`, `lg`). Pass `message=""` to hide the text, because `null` falls back to the default. It is the animated Nyumbani mark, served from the package. Use it for any wait the user can see, and do not invent another spinner.
+Props: `message` (default `loader_message` in `config/ui.php`, else "Nyumbani is processing your data...") and `size` (`sm`, `md`, `lg`). Pass `message=""` to hide the text, because `null` falls back to the default. It is the animated Nyumbani mark, served from the package, unless `loader` in `config/ui.php` (`UI_LOADER`) names the app's own image, a path under `public/` or a full URL. Use it for any wait the user can see, and do not invent another spinner.
+
+## Colours
+The theme has six colour tokens and a font: `--color-primary`, `-dark`, `-darker`, `--color-secondary`, `-dark`, `-light` and `--font-sans`. The components, toasts and calendars read nothing else, so never hard-code `#d97706` or `#1f2937`. The Nyumbani values are the defaults in `base.css`, and `theme.css` adds the Nyumbani web fonts. A project that is not a Nyumbani app imports `base.css` and redefines only the tokens it wants to change.
+
+## Corners
+Three tokens set every corner, and their defaults are the Nyumbani look: `--radius-field` (form fields, `.btn`, the period picker's calendar icon; `0.25rem`), `--radius-panel` (the modal on a large screen, the calendar popover, the period presets, the file preview, the modal's close button and the toasts; `0.25rem`) and `--radius-sheet` (the modal's top corners as a bottom sheet on a phone; `0.75rem`). A project that is not a Nyumbani app sets what it wants once in its own `@theme`, after the base import (`--radius-field: var(--radius-xl);`), and never overrides `rounded-*` on those elements. Use `rounded-field`, `rounded-panel` or `rounded-t-sheet` on a new component. Pills and circles (`rounded-full`) stay round.
 
 ## Components
 - `<x-nyumbani::modal>`: see the nyumbani-modal skill.

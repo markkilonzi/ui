@@ -85,7 +85,7 @@ class Modal extends Component
             'relative flex w-full flex-col overflow-hidden bg-white shadow-lg',
             $this->width(),
             'h-dvh rounded-none' => $this->isSlideOver,
-            'max-h-[calc(100dvh-1rem)] rounded-t-xl lg:max-h-[calc(100dvh-3rem)] lg:rounded' => ! $this->isSlideOver,
+            'max-h-[calc(100dvh-1rem)] rounded-t-sheet lg:max-h-[calc(100dvh-3rem)] lg:rounded-panel' => ! $this->isSlideOver,
         ];
     }
 

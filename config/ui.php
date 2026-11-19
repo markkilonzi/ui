@@ -17,6 +17,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Loader
+    |--------------------------------------------------------------------------
+    |
+    | The image <x-nyumbani::loader> shows, as a path under public/ or a full
+    | URL. Leave it empty to use the animated Nyumbani loader the package ships.
+    |
+    */
+    'loader' => env('UI_LOADER'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Loader message
+    |--------------------------------------------------------------------------
+    |
+    | The text <x-nyumbani::loader> shows under the image when a page passes no
+    | message of its own. Leave it empty to use the Nyumbani wording.
+    |
+    */
+    'loader_message' => env('UI_LOADER_MESSAGE'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Languages
     |--------------------------------------------------------------------------
     |

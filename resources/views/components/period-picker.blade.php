@@ -16,7 +16,7 @@
                         <p class="mb-1.5 text-sm font-medium text-gray-700">{{ __('Quick select') }}</p>
                         <div class="grid grid-cols-2 gap-1.5 lg:grid-cols-3" role="listbox" aria-label="{{ __('Quick select') }}">
                             <template x-for="preset in picker.presets" :key="preset.value">
-                                <button type="button" role="option" class="rounded border px-3 py-2 text-left transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" x-bind:class="picker.isPicked(preset) ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-gray-200'" x-bind:aria-selected="picker.isPicked(preset)" x-on:click="picker.pick(preset)">
+                                <button type="button" role="option" class="rounded-panel border px-3 py-2 text-left transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" x-bind:class="picker.isPicked(preset) ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-gray-200'" x-bind:aria-selected="picker.isPicked(preset)" x-on:click="picker.pick(preset)">
                                     <span class="block text-sm font-medium" x-bind:class="picker.isPicked(preset) ? 'text-primary' : 'text-gray-800'" x-text="preset.label"></span>
                                     <span class="block text-xs text-gray-500" x-text="picker.summary(preset)"></span>
                                 </button>
@@ -87,7 +87,7 @@
     @elseif ($unit === 'year')
         <div class="flex items-stretch">
             @if ($icon)
-                <span class="pointer-events-none flex shrink-0 items-center justify-center rounded-l-sm {{ $iconPadding }} text-white {{ $iconBg }}" aria-hidden="true">
+                <span class="pointer-events-none flex shrink-0 items-center justify-center rounded-l-field {{ $iconPadding }} text-white {{ $iconBg }}" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
                 </span>
             @endif
@@ -102,7 +102,7 @@
         <div x-on:click.outside="picker.editing === 'value' && (picker.editing = null)" x-on:keydown.escape="picker.editing === 'value' && ($event.stopPropagation(), picker.editing = null)">
             <div x-ref="group" class="flex items-stretch">
                 @if ($icon)
-                    <button type="button" tabindex="-1" aria-label="{{ __('Open the calendar') }}" class="flex shrink-0 cursor-pointer items-center justify-center rounded-l-sm {{ $iconPadding }} text-white {{ $iconBg }}" x-on:click="picker.toggle('value', $refs.group)">
+                    <button type="button" tabindex="-1" aria-label="{{ __('Open the calendar') }}" class="flex shrink-0 cursor-pointer items-center justify-center rounded-l-field {{ $iconPadding }} text-white {{ $iconBg }}" x-on:click="picker.toggle('value', $refs.group)">
                         <svg xmlns="http://www.w3.org/2000/svg" class="{{ $iconClass }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
                     </button>
                 @endif

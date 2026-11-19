@@ -58,7 +58,7 @@ Default presets: `day-range` has Today, Yesterday, Last 7 days, Last 30 days, Th
 - In a day range, To refuses days before From and From refuses days after To.
 - The header's month and year (day view) or year (month view) are chips that open a list. Picking from those lists only navigates.
 - Years, single or in a range, are plain selects.
-- Colours come from the `--vc-*` variables in the UI `theme.css`; change them there, never per page.
+- Colours come from the `--vc-*` variables in the UI `base.css`; change them there, never per page.
 
 ## Reacting to a change
 - A GET form: the hidden input is part of the form, so submit it from `period-changed` as above.

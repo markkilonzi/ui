@@ -52,6 +52,42 @@ Livewire.start();
 
 4. Build the assets: `npm install && npm run build`.
 
+## Using the UI in a project that is not a Nyumbani app
+
+The components, scripts and styles work without the Nyumbani layouts, so another project can take them and write its own layouts. Install as above, then:
+
+1. Import `base.css` in place of `theme.css`. It is the theme with the Nyumbani colours, font, base size and corners as the defaults and no Google Fonts request. Any token you leave undefined stays Nyumbani, so redefine only what you want to change. `theme.css` is the Nyumbani web fonts plus `base.css`.
+
+```css
+/* resources/css/app.css */
+@import '../../vendor/nyumbani/ui/resources/css/base.css';
+
+@theme {
+    --font-sans: 'Lato', ui-sans-serif, sans-serif;
+
+    --color-primary-darker: #115e59;
+    --color-primary-dark: #0f766e;
+    --color-primary: #0d9488;
+
+    --color-secondary-dark: #0f172a;
+    --color-secondary: #1e293b;
+    --color-secondary-light: #475569;
+}
+
+:root {
+    --font-size-base: 16px;
+}
+```
+
+Those six colours, `--font-sans` and `--font-size-base` are the whole contract, each defaulting to the Nyumbani value (the orange, the slate, Inter and Roboto, 15px), plus three optional corner radii that default to the Nyumbani look: `--radius-field` (fields, buttons and the period picker's calendar icon, `0.25rem`), `--radius-panel` (the modal on a large screen, the calendar popover, the period presets, the file preview, the modal's close button and the toasts, `0.25rem`) and `--radius-sheet` (the modal's top corners as a bottom sheet on a phone, `0.75rem`). Leave one out and it keeps its Nyumbani default.
+
+2. Set `error_pages` to `false` in `config/ui.php`: the package error pages extend the Nyumbani app layout.
+3. Set `loader` in `config/ui.php` to your own loader image, a path under `public/` or a full URL: the shipped one has the Nyumbani colours drawn into it. Set `loader_message` too: the default text is Nyumbani's.
+4. Bind your own `Nyumbani\Essentials\Contracts\AuthViews` in your `AppServiceProvider::register()` to replace the Nyumbani sign-in, forgot-password and reset-password pages.
+5. Implement `Nyumbani\Essentials\Contracts\HasHomeRoute` on your user model: signing in sends the user to its `homeRoute()` URL, and throws a `LogicException` outside production without it.
+
+`ui:install` accepts a stylesheet that imports `base.css` and does not add `theme.css` next to it. See the Installation page of the UI docs.
+
 ## Configuration
 
 Publish `config/ui.php` with `php artisan vendor:publish --tag=ui-config`.
@@ -60,6 +96,8 @@ Publish `config/ui.php` with `php artisan vendor:publish --tag=ui-config`.
 | --- | --- | --- |
 | `branding.description` | `UI_DESCRIPTION` | The sentence under the app name on the sign-in page |
 | `branding.theme_color` | `UI_THEME_COLOR` | The browser address bar and installed app colour (`#d97706`) |
+| `loader_message` | `UI_LOADER_MESSAGE` | The text `<x-nyumbani::loader>` shows when a page passes no `message`. Empty uses "Nyumbani is processing your data..." |
+| `loader` | `UI_LOADER` | The image `<x-nyumbani::loader>` shows, a path under `public/` or a full URL. Empty uses the Nyumbani loader the package ships |
 | `locales` | | The languages offered as `code => label`. With more than one, the UI shows a language switch and applies the visitor's choice. Default: English only |
 | `js_translations` | | English texts your scripts read through `window.__('text')`, translated on the server |
 | `error_pages` | | Set to `false` to leave the framework error pages alone |

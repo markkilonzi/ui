@@ -20,7 +20,7 @@
                 <div x-dialog:panel @if ($confirm) x-on:submit="modal.submitted($event)" @endif {{ new ComponentAttributeBag($transition()) }} {{ $attributes->only('class')->class($panelClasses()) }}>
                     @if ($closeButton)
                         <div class="absolute right-0 top-0 z-10 mr-1 mt-1 flex cursor-pointer items-center justify-center p-4" @if ($dismissable) x-on:click="$dialog.close(); $dispatch('modal-closed')" @else x-on:click="modal.open = false; $dispatch('modal-closed')" @endif>
-                            <button type="button" class="rounded-md bg-gray-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" aria-label="{{ __('Close') }}">
+                            <button type="button" class="rounded-panel bg-gray-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" aria-label="{{ __('Close') }}">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l8 8M6 14L14 6" />
                                 </svg>

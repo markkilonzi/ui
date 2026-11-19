@@ -14,6 +14,7 @@
                 </div>
             @endforeach
         </div>
+        <p>These six names and <code>--font-sans</code> are the whole colour contract (<code>--font-size-base</code> sets the page size and the optional <code>--radius-field</code>, <code>--radius-panel</code> and <code>--radius-sheet</code> the corner radii of fields, panels and the phone bottom sheet; see the Installation page): the components, the toasts and the calendars read nothing else. The Nyumbani values are the defaults in <code>base.css</code>, so a project that is not a Nyumbani app imports <code>base.css</code> and redefines only the tokens it wants to change. See <x-docs::package-link package="nyumbani-ui" page="installation" anchor="other-projects">Using the UI in a project that is not a Nyumbani app</x-docs::package-link>.</p>
     </x-docs::section>
 
     <x-docs::section id="buttons" title="Buttons">
