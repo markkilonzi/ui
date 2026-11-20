@@ -1,5 +1,5 @@
 {{--  Navbar  --}}
-<header class="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 bg-white px-5 shadow-xl">
+<header class="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 bg-gray-200 px-5 shadow-xl">
     <div class="flex items-center">
         <button type="button" data-shell-toggle aria-label="{{ __('Menu') }}" class="mr-4 cursor-pointer text-secondary transition-colors hover:text-secondary-dark">
             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>

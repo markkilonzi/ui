@@ -271,7 +271,7 @@
     </x-docs::section>
 
     <x-docs::section id="branding" title="Favicons and manifest">
-        <p>The base layout links the shared favicons (the dark Nyumbani logo on an amber tile, so they show on light and dark tabs), the Apple touch icon, a web manifest named after your app and a theme colour. They are served by the package, so no app copies icon files. Change the colour with <code>ESSENTIALS_THEME_COLOR</code>.</p>
+        <p>The base layout links the shared favicons (the Nyumbani logo mark on a transparent background, as an SVG that turns white in dark mode and navy in light mode, with an <code>.ico</code> fallback), the Apple touch icon, a web manifest named after your app and a theme colour. They are served by the package, so no app copies icon files. Change the colour with <code>ESSENTIALS_THEME_COLOR</code>.</p>
             <x-docs::example title="The shared images, served by the package">
             <div class="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4">
                 @foreach (['icon-primary.png', 'icon-secondary.png', 'loader.svg', 'auth-background.jpg', 'shell-header.jpeg', 'shell-sidebar.jpeg'] as $image)
@@ -280,7 +280,7 @@
                         <figcaption class="mt-1 break-all text-[11px] text-gray-500">{{ $image }}</figcaption>
                     </figure>
                 @endforeach
-                @foreach (['favicon-32x32.png', 'apple-touch-icon.png', 'android-chrome-192x192.png'] as $image)
+                @foreach (['favicon-dark-32x32.png', 'favicon-light-32x32.png', 'apple-touch-icon.png', 'android-chrome-192x192.png'] as $image)
                     <figure class="rounded-md border border-gray-200 p-2 text-center">
                         <div class="flex h-20 items-center justify-center bg-gray-100"><img src="{{ route('nyumbani.favicon', ['image' => $image]) }}" alt="{{ $image }}" class="max-h-20 max-w-full object-contain"></div>
                         <figcaption class="mt-1 break-all text-[11px] text-gray-500">favicons/{{ $image }}</figcaption>

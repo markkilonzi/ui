@@ -6,10 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title') - {{ config('app.name') }}</title>
-    {{--  The Nyumbani favicons, served by the package so every app inherits them  --}}
-    <link rel="icon" type="image/x-icon" href="{{ route('nyumbani.favicon', ['image' => 'favicon.ico']) }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ route('nyumbani.favicon', ['image' => 'favicon-32x32.png']) }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ route('nyumbani.favicon', ['image' => 'favicon-16x16.png']) }}">
+    {{--  The Nyumbani favicons, served by the package so every app inherits them. The SVG switches its own colours in dark mode, which browsers honour where they ignore media on icon links, and the .ico is the fallback  --}}
+    <link rel="icon" type="image/svg+xml" href="{{ route('nyumbani.favicon', ['image' => 'favicon.svg']) }}">
+    <link rel="icon" type="image/x-icon" sizes="32x32" href="{{ route('nyumbani.favicon', ['image' => 'favicon.ico']) }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ route('nyumbani.favicon', ['image' => 'apple-touch-icon.png']) }}">
     <link rel="manifest" href="{{ route('nyumbani.manifest') }}">
     <meta name="theme-color" content="{{ config('ui.branding.theme_color') }}">

@@ -24,7 +24,7 @@ Avoid repeating the sidebar include on every page. Create one app layout and ext
 The `sidebar` section takes the name of a view and the portal renders it; markup written inline in the section works too. A portal page with no sidebar throws a `LogicException`, and so does a name that is not a view.
 
 ## Favicons and manifest
-- Never add favicon files or a favicons partial to an app. The shared set, the dark Nyumbani logo on an amber tile at each size, lives in `resources/images/favicons/` of the package and is served by the `nyumbani.favicon` route. The layout links them inline.
+- Never add favicon files or a favicons partial to an app. The shared set, the Nyumbani logo mark on a transparent background at each size (the apple-touch icon sits on white), lives in `resources/images/favicons/` of the package and is served by the `nyumbani.favicon` route. The layout links `favicon.svg`, which draws the house, hand and swoosh navy in light mode and white in dark mode with its own `prefers-color-scheme` rule (browsers, Chrome included, ignore `media` on icon links, so the colour switch lives inside the SVG), then `favicon.ico` and the apple-touch icon as fallbacks for browsers without SVG favicons. The light and dark PNGs (`favicon-*-32x32.png`, `android-chrome-*-192x192.png`) are kept for apps that want them; the dark ones come from `icon-secondary.png`.
 - The manifest comes from `route('nyumbani.manifest')` (`WebManifestController`). It uses the app name and `ui.branding.theme_color`.
 - Change the theme color with `UI_THEME_COLOR` or the published config, never in the layout.
 - To replace an icon for one app, publish the package images, do not edit `vendor`.
