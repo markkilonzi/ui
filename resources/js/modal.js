@@ -32,35 +32,83 @@ document.addEventListener('alpine:init', () => {
                 confirming: false,
 
                 /**
+                 * Find the form being reviewed: the one that carries the review block, or else the first form in the body
+                 */
+                form() {
+                    //  The body holds the form, which may be loaded from a remote url
+                    const body = component.$refs.body;
+
+                    //  Prefer the form that holds the review block
+                    return body.querySelector('[data-review]')?.closest('form') ?? body.querySelector('form');
+                },
+
+                /**
+                 * Read every field of the form by name, giving an array for a repeated name or a name ending in [], and
+                 * the text of each selected option of a select under $labels
+                 */
+                collect(form) {
+                    //  Start with nothing read, and no labels
+                    const values = { $labels: {} };
+
+                    //  Go through each field, in the order the form posts them
+                    for (const [name, value] of new FormData(form)) {
+                        //  Drop the brackets so tags[] is read as data.tags
+                        const key = name.replace(/\[\]$/, '');
+
+                        //  Keep the first value as it is, and move to an array when the name comes again or ends in []
+                        if (! (key in values)) values[key] = name.endsWith('[]') ? [value] : value;
+                        else values[key] = [].concat(values[key], value);
+                    }
+
+                    //  Go through each select, to read the text the reader saw instead of the value that posts
+                    for (const select of form.querySelectorAll('select[name]')) {
+                        //  Name the label the way the value is named
+                        const key = select.name.replace(/\[\]$/, '');
+
+                        //  Read the selected options, leaving out a placeholder whose value is empty
+                        const labels = [...select.selectedOptions].filter((option) => option.value !== '').map((option) => option.text.trim());
+
+                        //  A multiple select gives every label, a single one gives its label or nothing
+                        values.$labels[key] = select.multiple ? labels : (labels[0] ?? '');
+                    }
+
+                    return values;
+                },
+
+                /**
                  * Move to the review once the browser accepts the form, keeping what was typed for the review to show
                  */
                 advance() {
-                    //  Find the form in the body
-                    const form = component.$refs.body.querySelector('form');
+                    //  Find the form being reviewed
+                    const form = this.form();
 
                     //  Stay on the form when the browser rejects a field, which shows its own message
                     if (! form || ! form.reportValidity()) return;
 
                     //  Keep the values for the review
-                    component.data = Object.fromEntries(new FormData(form));
+                    component.data = this.collect(form);
 
-                    //  Show the review the form carries, when the page gave none in the slot
-                    this.fillReview();
+                    //  Show the review the form carries
+                    this.fillReview(form);
+
+                    //  Set confirming to true
                     this.confirming = true;
                 },
 
                 /**
                  * Copy the content of the form's data-review block into the review step, where Alpine initialises it
                  */
-                fillReview() {
-                    //  Find the block in the body, which may be a form loaded from a remote url
-                    const block = component.$refs.body.querySelector('[data-review]');
+                fillReview(form) {
+                    //  Find the block in the form
+                    const block = form.querySelector('[data-review]');
 
-                    //  Leave a review the slot gave alone, which the review step marks with data-slotted
+                    //  Find the review step
                     const review = component.$refs.review;
 
-                    if (! block || ! review || review.dataset.slotted === 'true') return;
+                    //  Leave the review empty when there is nothing to copy
+                    if (! block || ! review) return;
 
+                    //  Copy the block
                     review.innerHTML = block.innerHTML;
                 },
 
@@ -68,14 +116,14 @@ document.addEventListener('alpine:init', () => {
                  * Return to the form
                  */
                 back() {
-                    //  Remember whether the review was showing, since only then is there a copy to clear
-                    const wasConfirming = this.confirming;
-
+                    //  Show the form
                     this.confirming = false;
+
+                    //  Forget what was read
                     component.data = {};
 
-                    //  Clear a review copied from the form, so the next one starts fresh
-                    if (wasConfirming && component.$refs.review && component.$refs.review.dataset.slotted !== 'true') component.$refs.review.innerHTML = '';
+                    //  Clear the review copied from the form, so the next one starts fresh
+                    if (component.$refs.review) component.$refs.review.innerHTML = '';
                 },
 
                 /**
@@ -83,7 +131,10 @@ document.addEventListener('alpine:init', () => {
                  */
                 submitted(event) {
                     if (config.confirm && ! this.confirming) {
+                        //  Prevent the form from submitting
                         event.preventDefault();
+
+                        //  Move to the review
                         this.advance();
                     }
                 },
@@ -111,17 +162,24 @@ document.addEventListener('alpine:init', () => {
 
                     //  Show the spinner
                     this.loading = true;
+
+                    //  Clear any failure
                     this.failed = false;
 
+                    //  Try to load
                     try {
                         //  Fetch the html
-                        const response = await fetch(config.src, { headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'text/html' } });
+                        const response = await fetch(config.src, { 
+                            headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'text/html' }
+                        });
 
                         //  Fail on an error status
                         if (!response.ok) throw new Error(response.status);
 
-                        //  Put the html in the body, which Alpine then initialises
+                        //  Replace the body
                         component.$refs.remote.innerHTML = await response.text();
+
+                        //  Mark it as loaded
                         this.loaded = true;
                     } catch (error) {
                         this.failed = true;

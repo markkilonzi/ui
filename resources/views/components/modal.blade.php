@@ -58,7 +58,7 @@
                                 <div x-show="! modal.confirming" x-transition:enter="transition duration-200 ease-out" x-transition:enter-start="-translate-x-4 opacity-0" x-transition:enter-end="translate-x-0 opacity-100" x-transition:leave="transition duration-150 ease-in" x-transition:leave-start="translate-x-0 opacity-100" x-transition:leave-end="-translate-x-4 opacity-0" class="col-start-1 row-start-1">{{ $slot }}</div>
 
                                 {{--  Step two: the review  --}}
-                                <div x-show="modal.confirming" x-cloak x-transition:enter="transition duration-200 ease-out" x-transition:enter-start="translate-x-4 opacity-0" x-transition:enter-end="translate-x-0 opacity-100" x-transition:leave="transition duration-150 ease-in" x-transition:leave-start="translate-x-0 opacity-100" x-transition:leave-end="translate-x-4 opacity-0" class="col-start-1 row-start-1" x-ref="review" data-slotted="{{ isset($review) && $review->hasActualContent() ? 'true' : 'false' }}">{{ $review ?? '' }}</div>
+                                <div x-show="modal.confirming" x-cloak x-transition:enter="transition duration-200 ease-out" x-transition:enter-start="translate-x-4 opacity-0" x-transition:enter-end="translate-x-0 opacity-100" x-transition:leave="transition duration-150 ease-in" x-transition:leave-start="translate-x-0 opacity-100" x-transition:leave-end="translate-x-4 opacity-0" class="col-start-1 row-start-1" x-ref="review"></div>
                             </div>
                         @else
                             {{ $slot }}

@@ -4,7 +4,7 @@ import "./shell.js";
 import "./submit.js";
 import "./number-input.js";
 import "./file-input.js";
-import "./modal-C9Lb7AZL.js";
+import "./modal-DQKQ_V_m.js";
 import "./period-picker-C4L1VkJQ.js";
 // resources/js/translate.js
 window.__ = (e, t = {}) => {

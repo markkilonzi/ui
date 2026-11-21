@@ -270,9 +270,6 @@
             </form>
             @endverbatim
         </x-docs::code>
-        <x-docs::callout type="note" title="The review slot is retired">
-            Older code may still use <code>&lt;x-slot:review&gt;</code>, and it keeps working, but new code never does. A <code>data-review</code> block is the only way to write a review.
-        </x-docs::callout>
         <p>The steps slide and fade into each other, so the move between the form and the review is visible. Back plays the same animation in reverse.</p>
         <h3>How the steps behave</h3>
         <ul>
@@ -282,14 +279,81 @@
             <li><strong>The form keeps posting.</strong> It stays on the page behind the review, so the submit button in the <code>action</code> slot sends every field. Give the button <code>form</code> set to the form id, because the footer sits outside the form.</li>
         </ul>
         <h3>What the review can read</h3>
-        <p>When Continue passes, the modal copies every field of the form into <code>data</code>, keyed by the field's <code>name</code> attribute. A field named <code>phone_number</code> is <code>data.phone_number</code>. The values are read from the page as it stands, so Alpine <code>x-model</code> and Livewire <code>wire:model</code> inputs work.</p>
+        <p>When Continue passes, the modal copies every field of the form into <code>data</code>, keyed by the field's <code>name</code> attribute. A field named <code>phone_number</code> is <code>data.phone_number</code>. The modal reads the form that holds the <code>data-review</code> block, so another form in the body, such as a search box, is never validated or read. A body with no <code>data-review</code> block falls back to its first form. The values are read from the page as it stands, so Alpine <code>x-model</code> and Livewire <code>wire:model</code> inputs work.</p>
         <x-docs::table :columns="['Case', 'Result']" :rows="[
-            ['Input, textarea, select with a name', 'Its current value. A select gives the option value, so show a label yourself.'],
+            ['Input, textarea, select with a name', 'Its current value. A select gives the option value, which is the id you post.'],
+            ['Select label', 'The text of the selected option, in data.$labels.field_name. A multiple select gives an array, and an empty placeholder option gives an empty string.'],
             ['Input with no name', 'Not in data. Give it a name.'],
             ['Value held only in Alpine state, or a custom dropdown', 'Not in data. Write it to a hidden input with a name.'],
             ['Field removed with x-if', 'Not in data. x-show is fine.'],
-            ['Checkbox group or name[]', 'Only one value. Show these yourself.'],
+            ['Checkbox group, repeated name, or name[]', 'An array of every value, so tags[] is data.tags. A single checkbox gives its value when ticked and is missing when not.'],
         ]" />
+        <p>A select posts the option's value, usually an id, but the reader chose by its text. The text is in <code>data.$labels</code>, keyed by the select's name, so a select built from a model shows the model's name.</p>
+        <x-docs::code lang="blade">
+            @verbatim
+            <select name="country_id" required>
+                <option value="">Choose a country</option>
+                @foreach ($countries as $country)
+                    <option value="{{ $country->id }}">{{ $country->name }}</option>
+                @endforeach
+            </select>
+
+            <div data-review>
+                Country: <span x-text="data.$labels.country_id"></span>
+            </div>
+            @endverbatim
+        </x-docs::code>
+        <x-docs::example title="Live: a select, its value and its label">
+            <x-nyumbani::modal confirm name="docs-select" title="Pick a branch">
+                <x-slot:trigger><span class="btn btn-primary btn-sm">Pick a branch</span></x-slot:trigger>
+
+                <form id="docs-select-form" method="POST" action="{{ route('nyumbani.docs.samples.form', ['package' => request()->route('package')]) }}" class="space-y-3 p-4">
+                    @csrf
+                    <div>
+                        <label for="docs-select-branch" aria-required="true">Branch</label>
+                        <select id="docs-select-branch" name="branch_id" required>
+                            <option value="">Choose a branch</option>
+                            <option value="12">Westlands</option>
+                            <option value="27">Kilimani</option>
+                            <option value="31">Karen</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="docs-select-services">Services</label>
+                        <select id="docs-select-services" name="service_ids[]" multiple>
+                            <option value="1">Gym</option>
+                            <option value="2">Pool</option>
+                            <option value="3">Sauna</option>
+                        </select>
+                    </div>
+
+                    <div data-review>
+                        <div class="p-4">
+                            <p><span class="text-gray-500">Branch posts:</span> <span x-text="data.branch_id"></span></p>
+                            <p class="mt-2 text-lg"><span class="text-gray-500">Branch shows:</span> <span x-text="data.$labels.branch_id"></span></p>
+                            <p class="mt-2"><span class="text-gray-500">Services post:</span> <span x-text="(data.service_ids ?? []).join(', ') || 'None'"></span></p>
+                            <p class="mt-2 text-lg"><span class="text-gray-500">Services show:</span> <span x-text="data.$labels.service_ids.join(', ') || 'None'"></span></p>
+                        </div>
+                    </div>
+                </form>
+
+                <x-slot:action>
+                    <button type="submit" form="docs-select-form" class="btn btn-primary">Save</button>
+                </x-slot:action>
+            </x-nyumbani::modal>
+        </x-docs::example>
+        <p>Only the text printed inside the option is read, so print the property you want to show there. A repeated name gives an array in the order the form posts it, and a name ending in <code>[]</code> loses its brackets, so the review reads it as <code>data.interests</code>.</p>
+        <x-docs::code lang="blade">
+            @verbatim
+            <input type="checkbox" name="interests[]" value="Gym"> Gym
+            <input type="checkbox" name="interests[]" value="Pool"> Pool
+
+            <div data-review>
+                Interests: <span x-text="(data.interests ?? []).join(', ') || 'None'"></span>
+            </div>
+            @endverbatim
+        </x-docs::code>
         <p>The review is copied into the modal, so it cannot see the form's own <code>x-data</code>. It reads <code>data</code> only.</p>
         <x-docs::callout type="note" title="Not a confirm dialog">
             This reviews a form before saving. To confirm a destructive action, use the browser's <code>confirm()</code> as below.
@@ -298,16 +362,34 @@
             <x-nyumbani::modal confirm name="docs-confirm" error-bag="docs-confirm" title="New customer">
                 <x-slot:trigger><span class="btn btn-primary btn-sm">Add a customer</span></x-slot:trigger>
 
-                <form id="docs-confirm-form" method="POST" action="{{ route('nyumbani.docs.samples.form', ['package' => request()->route('package')]) }}" class="p-4">
+                <form id="docs-confirm-form" method="POST" action="{{ route('nyumbani.docs.samples.form', ['package' => request()->route('package')]) }}" class="space-y-3 p-4">
                     @csrf
                     @bag('docs-confirm')
-                    <label for="docs-confirm-name" aria-required="true">Name</label>
-                    <input id="docs-confirm-name" name="name" type="text" required minlength="3" placeholder="At least 3 letters">
+                    <div>
+                        <label for="docs-confirm-name" aria-required="true">Name</label>
+                        <input id="docs-confirm-name" name="name" type="text" required minlength="3" placeholder="At least 3 letters">
+                    </div>
+
+                    <div>
+                        <label for="docs-confirm-plan">Plan</label>
+                        <select id="docs-confirm-plan" name="plan_id" required>
+                            <option value="">Choose a plan</option>
+                            <option value="1">Monthly</option>
+                            <option value="2">Yearly</option>
+                        </select>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <label><input type="checkbox" name="interests[]" value="Gym"> Gym</label>
+                        <label><input type="checkbox" name="interests[]" value="Pool"> Pool</label>
+                    </div>
 
                     <div data-review>
                         <div class="p-4">
                             <p class="text-gray-500">Check the details, then save.</p>
                             <p class="mt-2 text-lg"><span class="text-gray-500">Name:</span> <span x-text="data.name"></span></p>
+                            <p class="mt-2 text-lg"><span class="text-gray-500">Plan:</span> <span x-text="data.$labels.plan_id"></span></p>
+                            <p class="mt-2 text-lg"><span class="text-gray-500">Interests:</span> <span x-text="(data.interests ?? []).join(', ') || 'None'"></span></p>
                         </div>
                     </div>
                 </form>

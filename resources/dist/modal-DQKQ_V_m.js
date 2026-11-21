@@ -1752,17 +1752,32 @@ document.addEventListener("alpine:init", () => {
 				loading: !1,
 				failed: !1,
 				confirming: !1,
-				advance() {
-					let e = t.$refs.body.querySelector("form");
-					e && e.reportValidity() && (t.data = Object.fromEntries(new FormData(e)), this.fillReview(), this.confirming = !0);
+				form() {
+					let e = t.$refs.body;
+					return e.querySelector("[data-review]")?.closest("form") ?? e.querySelector("form");
 				},
-				fillReview() {
-					let e = t.$refs.body.querySelector("[data-review]"), n = t.$refs.review;
-					e && n && n.dataset.slotted !== "true" && (n.innerHTML = e.innerHTML);
+				collect(e) {
+					let t = { $labels: {} };
+					for (let [n, r] of new FormData(e)) {
+						let e = n.replace(/\[\]$/, "");
+						t[e] = e in t ? [].concat(t[e], r) : n.endsWith("[]") ? [r] : r;
+					}
+					for (let n of e.querySelectorAll("select[name]")) {
+						let e = n.name.replace(/\[\]$/, ""), r = [...n.selectedOptions].filter((e) => e.value !== "").map((e) => e.text.trim());
+						t.$labels[e] = n.multiple ? r : r[0] ?? "";
+					}
+					return t;
+				},
+				advance() {
+					let e = this.form();
+					e && e.reportValidity() && (t.data = this.collect(e), this.fillReview(e), this.confirming = !0);
+				},
+				fillReview(e) {
+					let n = e.querySelector("[data-review]"), r = t.$refs.review;
+					n && r && (r.innerHTML = n.innerHTML);
 				},
 				back() {
-					let e = this.confirming;
-					this.confirming = !1, t.data = {}, e && t.$refs.review && t.$refs.review.dataset.slotted !== "true" && (t.$refs.review.innerHTML = "");
+					this.confirming = !1, t.data = {}, t.$refs.review && (t.$refs.review.innerHTML = "");
 				},
 				submitted(t) {
 					e.confirm && !this.confirming && (t.preventDefault(), this.advance());
