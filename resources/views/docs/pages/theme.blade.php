@@ -85,4 +85,29 @@
             <x-nyumbani::file-input name="example" label="Choose a file" accept="image/*" />
         </x-docs::example>
     </x-docs::section>
+
+    <x-docs::section id="password-input" title="Password input">
+        <p><code>&lt;x-nyumbani::password-input&gt;</code> is the password field for every form: an input with an eye button inside it that shows or hides what is typed. The button is keyboard reachable and announces its state to screen readers. The sign-in and reset-password pages use it, so an app never writes its own toggle.</p>
+        <x-docs::code lang="blade">
+            @verbatim
+            <form method="POST" action="{{ route('password.update') }}">
+                @csrf
+                <x-nyumbani::password-input label="New password" placeholder="At least 8 characters" autocomplete="new-password" required />
+                <x-nyumbani::password-input name="password_confirmation" label="Confirm password" autocomplete="new-password" required />
+            </form>
+            @endverbatim
+        </x-docs::code>
+        <x-docs::table :columns="['Prop', 'Default', 'Use']" :rows="[
+            ['name', 'password', 'The field name the controller reads, and the default id.'],
+            ['label', 'none', 'The label above the field.'],
+            ['placeholder', 'Enter your password', 'Pass the rule, such as At least 8 characters, on a new-password field.'],
+            ['autocomplete', 'current-password', 'Use new-password when the user is choosing a password.'],
+            ['required', 'false', 'Marks the input and its label as required.'],
+            ['icon', 'false', 'Draws a lock inside the left edge of the field, as the sign-in pages do.'],
+        ]" />
+        <p>Any other attribute, such as <code>id</code> or <code>minlength</code>, goes to the input. When validation fails for the field, the input is marked invalid and the first error prints under it.</p>
+        <x-docs::example title="Live: press the eye to show the password">
+            <x-nyumbani::password-input name="example_password" label="Password" />
+        </x-docs::example>
+    </x-docs::section>
 @endsection
