@@ -1,6 +1,6 @@
 ---
 name: nyumbani-payment-prompt
-description: "Invoke when a Nyumbani app lets a payer pay with M-Pesa on screen: the <x-nyumbani::payment-prompt> component, the check route it calls, its states and texts, copying the pay-by-hand details, putting it in a modal, Reverb and the UI_ECHO_* settings, polling without a websocket (mode="poll"), the payment-confirmed event, or a payer stuck on a waiting screen. Skip for sending the STK push and receiving the callbacks (see nyumbani-daraja-payments and nyumbani-daraja-webhooks)."
+description: "Invoke when a Nyumbani app lets a payer pay with M-Pesa on screen: the <x-nyumbani::payment-prompt> component, the check route it calls, its states and texts, copying the pay-by-hand details, putting it in a modal, Reverb and the UI_ECHO_* settings, polling without a websocket (mode=poll), the payment-confirmed event, or a payer stuck on a waiting screen. Skip for sending the STK push and receiving the callbacks (see nyumbani-daraja-payments and nyumbani-daraja-webhooks)."
 metadata:
   author: nyumbani
 ---
