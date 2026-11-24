@@ -20,7 +20,7 @@ var t = null, n = async (e, t) => {
 }), window.Echo)), t);
 document.addEventListener("alpine:init", () => {
 	Alpine.data("paymentPrompt", (e) => {
-		let t, i = null, a = {};
+		let t, i = null, a = {}, o = !1;
 		return {
 			prompt: {
 				status: e.attempt.status === "pending" && !e.pushed ? "manual" : e.attempt.status,
@@ -56,7 +56,11 @@ document.addEventListener("alpine:init", () => {
 					return this.manual && window.money ? window.money(this.manual.amount) : this.manual?.amount;
 				},
 				setup() {
-					this.apply(e.attempt, !0), this.status !== "confirmed" && this.listen().catch(() => this.fail("connection"));
+					this.apply(e.attempt, !0), this.status !== "confirmed" && (e.mode === "poll" ? this.poll() : this.listen().catch(() => this.fail("connection")));
+				},
+				async poll() {
+					let t = Date.now() + e.duration * 1e3;
+					for (; !o && this.status !== "confirmed" && Date.now() < t;) await new Promise((t) => setTimeout(t, e.interval * 1e3)), document.hidden || await this.catchUp();
 				},
 				async listen() {
 					i = (await r(e.echo)).channel(e.attempt.channel).listen(".status.changed", (e) => this.apply(e)), await new Promise((e, t) => {
@@ -68,8 +72,12 @@ document.addEventListener("alpine:init", () => {
 				},
 				async catchUp() {
 					if (e.checkUrl) try {
-						let t = await this.send(e.checkUrl, { id: this.id }), n = t.ok ? await t.json() : null;
-						n && n.status !== this.status && this.status !== "manual" && this.apply(n);
+						let t = await this.send(e.checkUrl, { id: this.id }), n = t.ok ? await t.json() : null, r = [
+							"manual",
+							"timed-out",
+							"failed"
+						].includes(this.status);
+						n && n.status !== this.status && (!r || n.status === "confirmed") && this.apply(n);
 					} catch {}
 				},
 				apply(n, r = !1) {
@@ -121,6 +129,9 @@ document.addEventListener("alpine:init", () => {
 						body: JSON.stringify(t)
 					});
 				}
+			},
+			destroy() {
+				o = !0;
 			},
 			init() {
 				t = this.$el, this.prompt.setup();

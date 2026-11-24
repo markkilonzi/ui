@@ -5,7 +5,7 @@
 
 @section('content')
     <x-docs::section id="basic" title="Use the component">
-        <p>Never build your own payment screen. Your app starts the push in whatever way suits the page: a plain request, Livewire or ajax. When the response is ok, add <code>&lt;x-nyumbani::payment-prompt&gt;</code> to the page with the contract it returned. The prompt waits for the status the server broadcasts and shows how to pay by hand whenever the push does not succeed. On the server it pairs with <code>StkPushManager</code> from <code>nyumbani/daraja</code>, which you inject (there is no facade).</p>
+        <p>Never build your own payment screen. Your app starts the push in whatever way suits the page: a plain request, Livewire or ajax. When the response is ok, add <code>&lt;x-nyumbani::payment-prompt&gt;</code> to the page with the contract it returned. The prompt waits for the status the server broadcasts, or polls your check route when you set <code>DARAJA_STK_MODE=poll</code> (see Polling), and shows how to pay by hand whenever the push does not succeed. On the server it pairs with <code>StkPushManager</code> from <code>nyumbani/daraja</code>, which you inject (there is no facade).</p>
         <x-docs::code lang="blade">
             @verbatim
             <x-nyumbani::payment-prompt
@@ -22,6 +22,9 @@
             ['redirect', 'Where to go about a second after a confirmed payment. The component also dispatches payment-confirmed.'],
             ['timeout', 'Seconds before an unanswered push is treated as timed out. It defaults to the timeout in the contract, which nyumbani/daraja sets from DARAJA_STK_TIMEOUT (120). Pass it to override one page.'],
             ['confirm-timeout', 'Seconds a paid push may wait for its confirmation before the prompt says the payment arrived and must not be repeated (30).'],
+            ['mode', 'websocket or poll. It defaults to the contract (daraja.stk.mode), else websocket when Reverb is set up and poll when it is not. See Polling below.'],
+            ['interval', 'Seconds between polls in poll mode. It defaults to the contract (daraja.stk.poll_interval, 3).'],
+            ['duration', 'Seconds the prompt keeps polling before it stops. It defaults to the contract (daraja.stk.poll_duration, 300).'],
         ]" />
         <x-docs::callout type="note" title="It never starts a push, and never retries">
             The prompt has no start button, no initiate URL and no Try again button. After a failure the payer pays by hand, or your page starts a new push and renders a new prompt. Keeping that in the app means a modal stays open, and the amount and the payer are always decided on the server.
@@ -67,8 +70,17 @@
         ]" />
     </x-docs::section>
 
+    <x-docs::section id="polling" title="Polling, without a websocket">
+        <p>Set <code>DARAJA_STK_MODE=poll</code> (or pass <code>mode="poll"</code> to one prompt) and the prompt asks the check url for the attempt every <code>interval</code> seconds (<code>DARAJA_STK_POLL_INTERVAL</code>, 3) instead of listening to Reverb, so the app needs no websocket server, Echo or queue worker for the broadcast. It stops when the payment is confirmed, when <code>duration</code> seconds have passed (<code>DARAJA_STK_POLL_DURATION</code>, 300) or when the prompt leaves the page, and skips a round while the browser tab is hidden. A <code>check-url</code> is required. The check route is the one that backs the I have paid button, and <code>daraja.stk.check_throttle</code> limits how often it asks your payment resolver, so a short interval is cheap. Polling reads the attempt the callbacks update, so it needs no payment resolver to see a result. Without <code>mode</code> the prompt polls only when Reverb is not set up.</p>
+        <x-docs::code lang="blade">
+            @verbatim
+            <x-nyumbani::payment-prompt :$attempt :check-url="route('pay.check')" mode="poll" :interval="3" :duration="300" />
+            @endverbatim
+        </x-docs::code>
+    </x-docs::section>
+
     <x-docs::section id="reverb" title="Reverb">
-        <p>The prompt has no fallback to polling, so it needs a websocket server and throws a <code>LogicException</code> without one. It reads <code>config('ui.broadcasting')</code>, which defaults to <code>REVERB_APP_KEY</code>, <code>REVERB_HOST</code>, <code>REVERB_PORT</code> and <code>REVERB_SCHEME</code>. Set <code>UI_ECHO_KEY</code>, <code>UI_ECHO_HOST</code>, <code>UI_ECHO_PORT</code> and <code>UI_ECHO_SCHEME</code> only when the browser reaches Reverb differently from the server, such as behind a proxy. Run <code>php artisan reverb:start</code> (add <code>--debug</code> to see each connection and event) and a queue worker, since the broadcast is queued. Echo and Pusher are bundled with the UI package and load only when a prompt is on the page.</p>
+        <p>By default the prompt follows the payment over a websocket when Reverb is set up, and polls the check url when it is not (see Polling below). Asking for <code>mode="websocket"</code> without Reverb throws a <code>LogicException</code>. It reads <code>config('ui.broadcasting')</code>, which defaults to <code>REVERB_APP_KEY</code>, <code>REVERB_HOST</code>, <code>REVERB_PORT</code> and <code>REVERB_SCHEME</code>. Set <code>UI_ECHO_KEY</code>, <code>UI_ECHO_HOST</code>, <code>UI_ECHO_PORT</code> and <code>UI_ECHO_SCHEME</code> only when the browser reaches Reverb differently from the server, such as behind a proxy. Run <code>php artisan reverb:start</code> (add <code>--debug</code> to see each connection and event) and a queue worker, since the broadcast is queued. Echo and Pusher are bundled with the UI package and load only when a prompt is on the page.</p>
         <x-docs::callout type="warning" title="The channel is public">
             The server makes the UUID the channel is named after, and the broadcast carries only a status, never a phone or a receipt. Fulfil orders on the server, from the C2B payment you recorded, never on the browser's <code>payment-confirmed</code>.
         </x-docs::callout>
@@ -77,6 +89,7 @@
     <x-docs::section id="stuck" title="When the screen is stuck">
         <x-docs::table :columns="['You see', 'Because', 'Do']" :rows="[
             ['We lost the connection', 'The browser could not subscribe to Reverb within 8 seconds.', 'Start Reverb and check the REVERB_* or UI_ECHO_* values. curl http://localhost:8080/up answers 200 when it runs.'],
+            ['No check requests while polling', 'The page runs an old bundle, or the attempt was started before DARAJA_STK_MODE was set: the contract carries the mode.', 'Run npm run build in packages/ui and in the app, then start a new push.'],
             ['Waiting never moves on', 'The STK result never reached the app: Safaricom cannot reach a local machine.', 'Use a tunnel, or DARAJA_STK_SIMULATE with the stk-simulator buttons.'],
             ['Confirmed at once, with no payment', 'A resolver confirmed the attempt from an old payment.', 'Make the resolver check the amount and that the payment is newer than the attempt.'],
             ['No countdown or wrong length', 'The contract carries the timeout it was built with.', 'Set DARAJA_STK_TIMEOUT and start a new push, or pass :timeout.'],

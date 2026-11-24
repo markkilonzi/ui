@@ -1,6 +1,6 @@
 /**
  * Register the `paymentPrompt` Alpine component used by `<x-nyumbani::payment-prompt>`: it follows an M-Pesa payment
- * the app already started, waits for the status the server broadcasts on a public channel, and shows how to pay by
+ * the app already started, waits for the status the server broadcasts on a public channel (or asks the app on an interval, in poll mode), and shows how to pay by
  * hand whenever the push does not succeed. Laravel Echo is loaded only when a prompt is on the page.
  */
 
@@ -95,6 +95,9 @@ document.addEventListener('alpine:init', () => {
         //  The timers of the waiting and confirming steps
         const timers = {};
 
+        //  True once the prompt is gone from the page, which ends the polling
+        let stopped = false;
+
         //  Return the reactive state
         return {
             prompt: {
@@ -184,8 +187,34 @@ document.addEventListener('alpine:init', () => {
                     //  A confirmed payment has nothing left to hear
                     if (this.status === 'confirmed') return;
 
+                    //  Polling asks the app on an interval and needs no websocket
+                    if (config.mode === 'poll') {
+                        //  Start polling
+                        this.poll();
+
+                        //  Return, as there is nothing else to do
+                        return;
+                    }
+
                     //  Listen for the result, showing the way to pay by hand when the server cannot be reached
                     this.listen().catch(() => this.fail('connection'));
+                },
+
+                /**
+                 * Ask the app where the attempt stands every few seconds until the payment is confirmed
+                 */
+                async poll() {
+                    //  Stop asking once the duration has passed
+                    const until = Date.now() + config.duration * 1000;
+
+                    //  Keep asking until the payment is confirmed, the time is up or the prompt leaves the page
+                    while (!stopped && this.status !== 'confirmed' && Date.now() < until) {
+                        //  Wait for the next round
+                        await new Promise((resolve) => setTimeout(resolve, config.interval * 1000));
+
+                        //  Do not ask while the payer looks at another tab
+                        if (!document.hidden) await this.catchUp();
+                    }
                 },
 
                 /**
@@ -233,8 +262,11 @@ document.addEventListener('alpine:init', () => {
                         //  Read the answer, which is the attempt again
                         const attempt = response.ok ? await response.json() : null;
 
-                        //  Take a status that moved on
-                        if (attempt && attempt.status !== this.status && this.status !== 'manual') this.apply(attempt);
+                        //  Take a status that moved on: once the prompt shows manual, timed out or failed, only a confirmed payment changes it
+                        const settled = ['manual', 'timed-out', 'failed'].includes(this.status);
+
+                        //  Show it
+                        if (attempt && attempt.status !== this.status && (!settled || attempt.status === 'confirmed')) this.apply(attempt);
                     } catch {
                         //  The broadcast is still coming, so a failed catch-up is no failure
                     }
@@ -383,6 +415,13 @@ document.addEventListener('alpine:init', () => {
                         body: JSON.stringify(body),
                     });
                 },
+            },
+
+            /**
+             * Stop polling when the prompt leaves the page, which Alpine announces
+             */
+            destroy() {
+                stopped = true;
             },
 
             /**

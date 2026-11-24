@@ -1,13 +1,13 @@
 ---
 name: nyumbani-payment-prompt
-description: "Invoke when a Nyumbani app lets a payer pay with M-Pesa on screen: the <x-nyumbani::payment-prompt> component, the check route it calls, its states and texts, copying the pay-by-hand details, putting it in a modal, Reverb and the UI_ECHO_* settings, the payment-confirmed event, or a payer stuck on a waiting screen. Skip for sending the STK push and receiving the callbacks (see nyumbani-daraja-payments and nyumbani-daraja-webhooks)."
+description: "Invoke when a Nyumbani app lets a payer pay with M-Pesa on screen: the <x-nyumbani::payment-prompt> component, the check route it calls, its states and texts, copying the pay-by-hand details, putting it in a modal, Reverb and the UI_ECHO_* settings, polling without a websocket (mode="poll"), the payment-confirmed event, or a payer stuck on a waiting screen. Skip for sending the STK push and receiving the callbacks (see nyumbani-daraja-payments and nyumbani-daraja-webhooks)."
 metadata:
   author: nyumbani
 ---
 
 # Nyumbani Payment Prompt
 
-`<x-nyumbani::payment-prompt>` is the one screen for paying with M-Pesa. It **follows** a push the app already started: the app starts it (a request, Livewire or ajax), and when that succeeds puts the component on the page with the contract it got back. The prompt waits for the status the server broadcasts and shows how to pay by hand whenever the push does not succeed. Never build another one. It needs Reverb, and `nyumbani/daraja` on the server (`StkPushManager`, see `nyumbani-daraja-payments`).
+`<x-nyumbani::payment-prompt>` is the one screen for paying with M-Pesa. It **follows** a push the app already started: the app starts it (a request, Livewire or ajax), and when that succeeds puts the component on the page with the contract it got back. The prompt waits for the status the server broadcasts (or polls the check route, see Polling) and shows how to pay by hand whenever the push does not succeed. Never build another one. It follows over Reverb, or by polling the check route with `mode="poll"`, and needs `nyumbani/daraja` on the server (`StkPushManager`, see `nyumbani-daraja-payments`).
 
 ## Use it
 ```blade
@@ -21,6 +21,7 @@ metadata:
 - `check-url` receives `{ id }` and answers with the contract again. It backs the "I have paid, check" button (needs `StkPushManager::resolvePaymentUsing()`) and catches up on a status that changed before the page subscribed. Without it there is no button.
 - `:pushed="false"` is for a payment nobody was prompted for (`$stkPush->track()`): it shows how to pay and waits for the payment.
 - `redirect` moves on about a second after a confirmed payment. The component also dispatches `payment-confirmed` from its element (`detail.id`), so a page can react with `x-on:payment-confirmed`. That event is for the screen only.
+- `mode` is `websocket` or `poll` (default: `websocket` when Reverb is set up, else `poll`); `interval` is the seconds between polls (3) and `duration` how long it keeps polling (300). All three default to the attempt's contract, which nyumbani/daraja fills from `daraja.stk.mode`, `poll_interval` and `poll_duration`, so set them there for the whole app and use the props only for one page. See Polling.
 - `timeout` overrides the waiting time (it defaults to the `timeout` in the contract, from `DARAJA_STK_TIMEOUT`, 120); `confirm-timeout` is how long a paid push waits for its confirmation before saying so (30).
 
 ## It never starts a push and never retries
@@ -45,8 +46,11 @@ Use only the theme's primary colour, greys and white. Do not add green, amber or
 ## In a modal
 Put it inside `<x-nyumbani::modal>` with a `p-4` body. The prompt keeps working because it listens by itself.
 
+## Polling
+Set `DARAJA_STK_MODE=poll` (or pass `mode="poll"`, `:interval="3"` and `:duration="300"`, in seconds) to follow the payment without a websocket: the prompt asks the `check-url` (required) on the interval until the payment is confirmed, the duration is up or the prompt leaves the page, and skips rounds while the tab is hidden. Without `mode` it polls only when Reverb is not set up; `daraja.stk.check_throttle` keeps the resolver from being hammered.
+
 ## Reverb
-The component throws a `LogicException` without Reverb settings, since it has no other way to hear the result. It reads `config('ui.broadcasting')`, which defaults to `REVERB_APP_KEY`, `REVERB_HOST`, `REVERB_PORT` and `REVERB_SCHEME`; set `UI_ECHO_KEY`, `UI_ECHO_HOST`, `UI_ECHO_PORT` and `UI_ECHO_SCHEME` only when the browser reaches Reverb differently from the server. Run `php artisan reverb:start` (add `--debug` to see connections and events) and a queue worker, since the broadcast is queued. Echo and Pusher are bundled in `resources/dist`, load only when a prompt is on the page, and reuse `window.Echo` when the app made one.
+The default `websocket` mode throws a `LogicException` without Reverb settings. It reads `config('ui.broadcasting')`, which defaults to `REVERB_APP_KEY`, `REVERB_HOST`, `REVERB_PORT` and `REVERB_SCHEME`; set `UI_ECHO_KEY`, `UI_ECHO_HOST`, `UI_ECHO_PORT` and `UI_ECHO_SCHEME` only when the browser reaches Reverb differently from the server. Run `php artisan reverb:start` (add `--debug` to see connections and events) and a queue worker, since the broadcast is queued. Echo and Pusher are bundled in `resources/dist`, load only when a prompt is on the page, and reuse `window.Echo` when the app made one.
 
 ## Rules
 - The event channel is public and named after the attempt's UUID, so the UUID is the only secret: never log it, and never put a phone or receipt in the broadcast.
@@ -57,6 +61,7 @@ The component throws a `LogicException` without Reverb settings, since it has no
 | You see | Because | Do |
 | --- | --- | --- |
 | "We lost the connection" after 8 seconds | The browser could not subscribe to Reverb | Start Reverb, check `REVERB_*` or `UI_ECHO_*` |
+| No `check` requests while polling | The page runs an old bundle, or the attempt was started before `DARAJA_STK_MODE` was set (the contract carries the mode) | Run `npm run build` in `packages/ui` and in the app, then start a new push |
 | Waiting never moves on | The STK result never reached the app | Use a tunnel, or `DARAJA_STK_SIMULATE` with `<x-nyumbani::stk-simulator :$attempt />` |
 | Confirmed at once with no payment | A resolver confirmed it from an old payment | Make the resolver check the amount and that the payment is newer |
 | Wrong countdown | The contract carries the timeout it was built with | Set `DARAJA_STK_TIMEOUT` and start a new push, or pass `:timeout` |

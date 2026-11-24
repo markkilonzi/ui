@@ -26,7 +26,7 @@ class PaymentPrompt extends Component
     public string $pendingMessage;
 
     /**
-     * Create the prompt, which follows the attempt the app started: pass the contract the app got back, the check url that backs the I have paid button, and whether a push was sent to the payer at all
+     * Create the prompt, which follows the attempt the app started: pass the contract the app got back, the check url that backs the I have paid button (and the polling), and whether a push was sent to the payer at all. The mode is websocket (Reverb) or poll (asks the check url every interval seconds), and defaults to websocket when Reverb is set up
      *
      * @author Alvin G. Kaburu <geekaburu@nyumbanitech.co.ke>
      */
@@ -37,13 +37,32 @@ class PaymentPrompt extends Component
         public ?string $redirect = null,
         public ?int $timeout = null,
         public int $confirmTimeout = 30,
+        public ?string $mode = null,
+        public ?int $interval = null,
+        public ?int $duration = null,
     ) {
         //  Wait as long as the prompt asks for, or as long as the attempt says
         $this->timeout = $timeout ?? (int) ($attempt['timeout'] ?? 120);
 
-        //  The prompt only works over a websocket, so refuse to render without one
-        if (blank(config('ui.broadcasting.key')) || blank(config('ui.broadcasting.host'))) {
-            throw new LogicException('<x-nyumbani::payment-prompt> needs Reverb: set REVERB_APP_KEY and REVERB_HOST, or the UI_ECHO_* keys (see config/ui.php).');
+        //  Follow the way the prompt asks for, or the attempt says, or by a websocket when Reverb is set up and else by polling the check url
+        $this->mode ??= $attempt['mode'] ?? null;
+        $this->mode ??= filled(config('ui.broadcasting.key')) && filled(config('ui.broadcasting.host'))
+            ? 'websocket'
+            : 'poll';
+
+        //  Refuse a mode that does not exist
+        if (! in_array($this->mode, ['websocket', 'poll'], true)) {
+            throw new LogicException('<x-nyumbani::payment-prompt> mode must be "websocket" or "poll".');
+        }
+
+        //  A websocket needs Reverb
+        if ($this->mode === 'websocket' && (blank(config('ui.broadcasting.key')) || blank(config('ui.broadcasting.host')))) {
+            throw new LogicException('<x-nyumbani::payment-prompt> needs Reverb: set REVERB_APP_KEY and REVERB_HOST, or the UI_ECHO_* keys (see config/ui.php), or use mode="poll".');
+        }
+
+        //  Polling asks the check url, so it needs one
+        if ($this->mode === 'poll' && blank($checkUrl)) {
+            throw new LogicException('<x-nyumbani::payment-prompt> in poll mode needs a check-url to ask.');
         }
 
         //  Format the amount the way the app does
@@ -67,6 +86,9 @@ class PaymentPrompt extends Component
             'redirect' => $redirect,
             'timeout' => $this->timeout,
             'confirmTimeout' => $confirmTimeout,
+            'mode' => $this->mode,
+            'interval' => max(1, (int) ($interval ?? $attempt['interval'] ?? 3)),
+            'duration' => max(1, (int) ($duration ?? $attempt['duration'] ?? 300)),
             'echo' => config('ui.broadcasting'),
             'texts' => $this->texts(),
         ];
