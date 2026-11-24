@@ -65,6 +65,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Broadcasting
+    |--------------------------------------------------------------------------
+    |
+    | The Reverb server <x-nyumbani::payment-prompt> listens to in the browser.
+    | They default to the app's own Reverb settings; set the UI_ECHO_* keys only
+    | when the browser reaches Reverb on another host, port or scheme than the
+    | server does, such as behind a proxy.
+    |
+    */
+    'broadcasting' => [
+        'key' => env('UI_ECHO_KEY', env('REVERB_APP_KEY')),
+        'host' => env('UI_ECHO_HOST', env('REVERB_HOST')),
+        'port' => env('UI_ECHO_PORT', env('REVERB_PORT', 443)),
+        'scheme' => env('UI_ECHO_SCHEME', env('REVERB_SCHEME', 'https')),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Error pages
     |--------------------------------------------------------------------------
     |
